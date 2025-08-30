@@ -28,7 +28,7 @@ class ImageReceiver {
 
         const playerManager = castReceiverContext.getPlayerManager();
         
-        playerManager.addEventListener(cast.framework.events.EventType.LOAD, (event) => {
+        playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
             this.handleLoadEvent(event);
         });
 
