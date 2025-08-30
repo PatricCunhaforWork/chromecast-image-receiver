@@ -1,0 +1,117 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+}
+
+.image-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.next-image {
+    opacity: 0;
+    z-index: 2;
+    clip-path: circle(0% at center);
+}
+
+.next-image.reveal {
+    opacity: 1;
+    animation: fadeReveal 2.5s ease-out forwards;
+}
+
+.radar-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, transparent 0%, transparent 100%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    pointer-events: none;
+    mix-blend-mode: normal;
+}
+
+/* .radar-transition {
+    animation: radarSweep 1.5s ease-in-out forwards;
+} */
+
+@keyframes radarSweep {
+    0% {
+        width: 0;
+        height: 0;
+        background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 255, 255, 0.8) 90deg, transparent 180deg);
+        opacity: 1;
+    }
+    100% {
+        width: 300%;
+        height: 300%;
+        background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 255, 255, 0.8) 90deg, transparent 180deg);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeReveal {
+    0% {
+        clip-path: circle(0% at center);
+    }
+    100% {
+        clip-path: circle(150% at center);
+    }
+}
+
+.image.fade-in {
+    opacity: 1;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.image.fade-out {
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+}
+
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    z-index: 10;
+}
