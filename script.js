@@ -8,57 +8,128 @@ class ImageReceiver {
         this.isTransitioning = false;
         this.castContext = null;
         this.playerManager = null;
+        this.logContainer = null;
         
         this.init();
     }
 
     init() {
+        this.logContainer = document.getElementById('logContent');
+        this.log('Initializing Image Receiver...');
         this.initializeCastReceiver();
         this.loadInitialImage();
         this.startImageUpdates();
     }
 
+    log(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.innerHTML = `[${timestamp}] ${message}`;
+        logEntry.style.marginBottom = '5px';
+        logEntry.style.borderBottom = '1px solid #444';
+        logEntry.style.paddingBottom = '2px';
+        
+        if (this.logContainer) {
+            this.logContainer.appendChild(logEntry);
+            this.logContainer.scrollTop = this.logContainer.scrollHeight;
+            
+            // Keep only last 50 log entries
+            while (this.logContainer.children.length > 50) {
+                this.logContainer.removeChild(this.logContainer.firstChild);
+            }
+        }
+        
+        console.log(`[${timestamp}] ${message}`);
+    }
+
     initializeCastReceiver() {
-        const castReceiverContext = cast.framework.CastReceiverContext.getInstance();
-        const playbackConfig = new cast.framework.PlaybackConfig();
-        
-        castReceiverContext.addCustomMessageListener('urn:x-cast:custom-image-receiver', (customEvent) => {
-            this.handleCustomMessage(customEvent);
-        });
+        try {
+            this.log('Setting up Cast Receiver Context...');
+            const castReceiverContext = cast.framework.CastReceiverContext.getInstance();
+            const playbackConfig = new cast.framework.PlaybackConfig();
+            
+            // Add sender connection listeners
+            castReceiverContext.addEventListener(cast.framework.system.EventType.SENDER_CONNECTED, (event) => {
+                this.log(`<span style="color: #4CAF50;">✓ Sender Connected: ${event.senderId}</span>`);
+                this.log(`Sender Info: ${JSON.stringify(event.data, null, 2)}`);
+            });
 
-        const playerManager = castReceiverContext.getPlayerManager();
-        
-        playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
-            this.handleLoadEvent(event);
-        });
+            castReceiverContext.addEventListener(cast.framework.system.EventType.SENDER_DISCONNECTED, (event) => {
+                this.log(`<span style="color: #FF9800;">✗ Sender Disconnected: ${event.senderId}</span>`);
+            });
 
-        castReceiverContext.start();
-        
-        this.castContext = castReceiverContext;
-        this.playerManager = playerManager;
-        
-        console.log('Cast Receiver initialized');
+            // Add custom message listener
+            castReceiverContext.addCustomMessageListener('urn:x-cast:custom-image-receiver', (customEvent) => {
+                this.log(`<span style="color: #2196F3;">📨 Custom Message Received</span>`);
+                this.handleCustomMessage(customEvent);
+            });
+
+            const playerManager = castReceiverContext.getPlayerManager();
+            
+            // Add load event listener
+            playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
+                this.log(`<span style="color: #9C27B0;">🎬 Load Event Received</span>`);
+                this.handleLoadEvent(event);
+            });
+
+            this.log('Starting Cast Receiver Context...');
+            castReceiverContext.start();
+            
+            this.castContext = castReceiverContext;
+            this.playerManager = playerManager;
+            
+            this.log('<span style="color: #4CAF50;">✓ Cast Receiver initialized successfully</span>');
+        } catch (error) {
+            this.log(`<span style="color: #F44336;">✗ Cast Receiver initialization failed: ${error.message}</span>`);
+            console.error('Cast Receiver initialization error:', error);
+        }
     }
 
     handleLoadEvent(event) {
+        this.log('<span style="color: #9C27B0;">📦 MediaInfo Load Event Details:</span>');
+        this.log(`Full event data: <pre>${JSON.stringify(event.data, null, 2)}</pre>`);
+        
         const mediaInformation = event.data.media;
         
-        if (mediaInformation && mediaInformation.customData && mediaInformation.customData.imageSource) {
-            const imageSource = mediaInformation.customData.imageSource;
-            console.log('Received image source from MediaInfo:', imageSource);
-            this.updateImageSource(imageSource);
+        if (mediaInformation) {
+            this.log(`<span style="color: #03DAC6;">📋 MediaInfo object received:</span>`);
+            this.log(`<pre>${JSON.stringify(mediaInformation, null, 2)}</pre>`);
+            
+            if (mediaInformation.customData) {
+                this.log(`<span style="color: #FF6D00;">🔧 CustomData found:</span>`);
+                this.log(`<pre>${JSON.stringify(mediaInformation.customData, null, 2)}</pre>`);
+                
+                if (mediaInformation.customData.imageSource) {
+                    const imageSource = mediaInformation.customData.imageSource;
+                    this.log(`<span style="color: #4CAF50;">🖼️ Image source extracted: ${imageSource}</span>`);
+                    this.updateImageSource(imageSource);
+                } else {
+                    this.log('<span style="color: #FF9800;">⚠️ No imageSource found in customData</span>');
+                }
+            } else {
+                this.log('<span style="color: #FF9800;">⚠️ No customData found in MediaInfo</span>');
+            }
+        } else {
+            this.log('<span style="color: #F44336;">❌ No media information in event</span>');
         }
     }
 
     handleCustomMessage(customEvent) {
+        this.log('<span style="color: #2196F3;">📨 Custom Message Details:</span>');
+        this.log(`SenderId: ${customEvent.senderId}`);
+        this.log(`Message data: <pre>${JSON.stringify(customEvent.data, null, 2)}</pre>`);
+        
         const data = customEvent.data;
         if (data && data.imageSource) {
-            console.log('Received custom message with image source:', data.imageSource);
+            this.log(`<span style="color: #4CAF50;">🖼️ Image source from custom message: ${data.imageSource}</span>`);
             this.updateImageSource(data.imageSource);
+        } else {
+            this.log('<span style="color: #FF9800;">⚠️ No imageSource found in custom message data</span>');
         }
     }
 
     updateImageSource(newImageSource) {
+        this.log(`<span style="color: #E91E63;">🔄 Updating image source to: ${newImageSource}</span>`);
         this.imageUrl = newImageSource;
         this.updateImage();
     }
@@ -77,7 +148,7 @@ class ImageReceiver {
         const loadingImageUrl = this.createLoadingImageDataUrl();
         this.currentImage.src = loadingImageUrl;
         this.currentImage.style.opacity = '1';
-        console.log('Showing loading placeholder image');
+        this.log('📺 Showing loading placeholder image');
     }
 
     preloadImage(src) {
