@@ -66,11 +66,6 @@ class ImageReceiver {
                 this.log(`<span style="color: #FF9800;">✗ Sender Disconnected: ${event.senderId}</span>`);
             });
 
-            // castReceiverContext.addEventListener(cast.framework.system.EventType.MEDIA_STATUS_UPDATED, (event) => {
-            //     this.log(`<span style="color: #2196F3;">📺 Media Status Updated</span>`);
-            //     this.handleMediaStatusUpdate(event);
-            // });
-
             // Add custom message listener
             castReceiverContext.addCustomMessageListener('urn:x-cast:custom-image-receiver', (customEvent) => {
                 this.log(`<span style="color: #2196F3;">📨 Custom Message Received</span>`);
@@ -85,20 +80,10 @@ class ImageReceiver {
                 this.handleLoadEvent(event);
             });
 
-            // playerManager.addEventListener(cast.framework.events.EventType.LOAD, (event) => {
-            //     this.log(`<span style="color: #9C27B0;">🎬 LOAD Event Received</span>`);
-            //     this.handleLoadEvent(event);
-            // });
-
             playerManager.addEventListener(cast.framework.events.EventType.REQUEST_PLAY, (event) => {
                 this.log(`<span style="color: #4CAF50;">▶️ PLAY Request Event</span>`);
                 this.log(`Play event data: <pre>${JSON.stringify(event, null, 2)}</pre>`);
             });
-
-            // playerManager.addEventListener(cast.framework.events.EventType.ALL_EVENTS, (event) => {
-            //     this.log(`<span style="color: #9E9E9E;">🔍 ALL_EVENTS: ${event.type}</span>`);
-            //     this.log(`Event data: <pre>${JSON.stringify(event, null, 2)}</pre>`);
-            // });
 
             // Message interceptors for all possible message types
             playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (request) => {
@@ -150,19 +135,19 @@ class ImageReceiver {
                 'GET_STATUS', 'EDIT_TRACKS_INFO', 'SET_PLAYBACK_RATE'
             ];
 
-            messageTypes.forEach(messageType => {
-                if (cast.framework.messages.MessageType[messageType]) {
-                    try {
-                        playerManager.setMessageInterceptor(cast.framework.messages.MessageType[messageType], (request) => {
-                            this.log(`<span style="color: #795548;">📬 ${messageType} Message Intercepted</span>`);
-                            this.log(`Request: <pre>${JSON.stringify(request, null, 2)}</pre>`);
-                            return request;
-                        });
-                    } catch (error) {
-                        this.log(`<span style="color: #F44336;">❌ Failed to set interceptor for ${messageType}: ${error.message}</span>`);
-                    }
-                }
-            });
+            // messageTypes.forEach(messageType => {
+            //     if (cast.framework.messages.MessageType[messageType]) {
+            //         try {
+            //             playerManager.setMessageInterceptor(cast.framework.messages.MessageType[messageType], (request) => {
+            //                 this.log(`<span style="color: #795548;">📬 ${messageType} Message Intercepted</span>`);
+            //                 this.log(`Request: <pre>${JSON.stringify(request, null, 2)}</pre>`);
+            //                 return request;
+            //             });
+            //         } catch (error) {
+            //             this.log(`<span style="color: #F44336;">❌ Failed to set interceptor for ${messageType}: ${error.message}</span>`);
+            //         }
+            //     }
+            // });
 
             this.log('Starting Cast Receiver Context...');
             castReceiverContext.start();
