@@ -302,16 +302,16 @@ class ImageReceiver {
         this.radarOverlay.classList.add('radar-transition');
         
         setTimeout(() => {
-            // Swap the DOM elements instead of changing src attributes
-            const currentParent = this.currentImage.parentNode;
-            const nextParent = this.nextImage.parentNode;
-            
-            // Swap the elements
+            // Swap the element references but keep the currentImage visible
             [this.currentImage, this.nextImage] = [this.nextImage, this.currentImage];
             
-            // Reset the new nextImage (previously currentImage)
+            // Ensure the new currentImage (previously nextImage) stays fully visible
+            this.currentImage.style.opacity = '1';
+            this.currentImage.classList.remove('reveal');
+            this.currentImage.style.clipPath = 'none';
+            
+            // Reset the new nextImage (previously currentImage) for the next transition
             this.nextImage.style.opacity = '0';
-            this.nextImage.classList.remove('reveal');
             this.nextImage.style.clipPath = 'circle(0% at center)';
             
             this.radarOverlay.classList.remove('radar-transition');
