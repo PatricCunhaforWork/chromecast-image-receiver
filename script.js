@@ -25,18 +25,26 @@ class ImageReceiver {
         const timestamp = new Date().toLocaleTimeString();
         const logEntry = document.createElement('div');
         logEntry.innerHTML = `[${timestamp}] ${message}`;
-        logEntry.style.marginBottom = '5px';
-        logEntry.style.borderBottom = '1px solid #444';
-        logEntry.style.paddingBottom = '2px';
+        logEntry.style.marginBottom = '8px';
+        logEntry.style.borderBottom = '1px solid #333';
+        logEntry.style.paddingBottom = '5px';
+        logEntry.style.lineHeight = '1.4';
         
         if (this.logContainer) {
             this.logContainer.appendChild(logEntry);
-            this.logContainer.scrollTop = this.logContainer.scrollHeight;
             
-            // Keep only last 50 log entries
-            while (this.logContainer.children.length > 50) {
+            // Keep only last 100 log entries
+            while (this.logContainer.children.length > 100) {
                 this.logContainer.removeChild(this.logContainer.firstChild);
             }
+            
+            // Force scroll to bottom after a brief delay to ensure rendering
+            setTimeout(() => {
+                const logParent = this.logContainer.parentElement;
+                if (logParent) {
+                    logParent.scrollTop = logParent.scrollHeight;
+                }
+            }, 10);
         }
         
         console.log(`[${timestamp}] ${message}`);
