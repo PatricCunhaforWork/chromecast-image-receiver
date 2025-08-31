@@ -4,7 +4,7 @@ class ImageReceiver {
         this.nextImage = document.getElementById('nextImage');
         this.radarOverlay = document.querySelector('.radar-overlay');
         this.imageUrl = null;
-        this.updateInterval = 1000;
+        this.updateInterval = 10000;
         this.isTransitioning = false;
         this.castContext = null;
         this.playerManager = null;
