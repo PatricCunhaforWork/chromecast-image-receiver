@@ -58,7 +58,7 @@ body {
 
 .next-image.reveal {
     opacity: 1;
-    animation: fadeReveal 1.5s ease-out forwards;
+    animation: fadeReveal 0.5s ease-out forwards;
 }
 
 .radar-overlay {
