@@ -130,10 +130,10 @@ class ImageReceiver {
             }.bind(this);
 
             // Intercept all possible message types
-            const messageTypes = [
-                'LOAD', 'PLAY', 'PAUSE', 'STOP', 'SEEK', 'SET_VOLUME', 
-                'GET_STATUS', 'EDIT_TRACKS_INFO', 'SET_PLAYBACK_RATE'
-            ];
+            // const messageTypes = [
+            //     'LOAD', 'PLAY', 'PAUSE', 'STOP', 'SEEK', 'SET_VOLUME', 
+            //     'GET_STATUS', 'EDIT_TRACKS_INFO', 'SET_PLAYBACK_RATE'
+            // ];
 
             // messageTypes.forEach(messageType => {
             //     if (cast.framework.messages.MessageType[messageType]) {
@@ -229,6 +229,7 @@ class ImageReceiver {
         this.log(`<span style="color: #E91E63;">🔄 Updating image source to: ${newImageSource}</span>`);
         this.imageUrl = newImageSource;
         this.updateImage();
+        this.startImageUpdates();
     }
 
     createLoadingImageDataUrl() {
