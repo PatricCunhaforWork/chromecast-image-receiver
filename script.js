@@ -71,43 +71,90 @@ class ImageReceiver {
 
             const playerManager = castReceiverContext.getPlayerManager();
             
-            // Add load event listener
+            // Add comprehensive event listeners
             playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
-                this.log(`<span style="color: #9C27B0;">🎬 Load Event Received</span>`);
+                this.log(`<span style="color: #9C27B0;">🎬 REQUEST_LOAD Event Received</span>`);
                 this.handleLoadEvent(event);
             });
 
-            playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD,
-                request => {
-                    this.log('<span style="color: #9C27B0;">📦 MediaInfo Load Message Details:</span>');
-                    this.log(`Full event data: <pre>${JSON.stringify(event.data, null, 2)}</pre>`);
+            playerManager.addEventListener(cast.framework.events.EventType.LOAD, (event) => {
+                this.log(`<span style="color: #9C27B0;">🎬 LOAD Event Received</span>`);
+                this.handleLoadEvent(event);
+            });
+
+            playerManager.addEventListener(cast.framework.events.EventType.REQUEST_PLAY, (event) => {
+                this.log(`<span style="color: #4CAF50;">▶️ PLAY Request Event</span>`);
+                this.log(`Play event data: <pre>${JSON.stringify(event, null, 2)}</pre>`);
+            });
+
+            playerManager.addEventListener(cast.framework.events.EventType.ALL_EVENTS, (event) => {
+                this.log(`<span style="color: #9E9E9E;">🔍 ALL_EVENTS: ${event.type}</span>`);
+                this.log(`Event data: <pre>${JSON.stringify(event, null, 2)}</pre>`);
+            });
+
+            // Message interceptors for all possible message types
+            playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (request) => {
+                this.log('<span style="color: #9C27B0;">📦 LOAD Message Interceptor</span>');
+                this.log(`Load request: <pre>${JSON.stringify(request, null, 2)}</pre>`);
+                
+                const mediaInformation = request.media;
+                
+                if (mediaInformation) {
+                    this.log(`<span style="color: #03DAC6;">📋 MediaInfo from interceptor:</span>`);
+                    this.log(`<pre>${JSON.stringify(mediaInformation, null, 2)}</pre>`);
                     
-                    const mediaInformation = request.media;
-                    
-                    if (mediaInformation) {
-                        this.log(`<span style="color: #03DAC6;">📋 MediaInfo object received:</span>`);
-                        this.log(`<pre>${JSON.stringify(mediaInformation, null, 2)}</pre>`);
+                    if (mediaInformation.customData) {
+                        this.log(`<span style="color: #FF6D00;">🔧 CustomData found:</span>`);
+                        this.log(`<pre>${JSON.stringify(mediaInformation.customData, null, 2)}</pre>`);
                         
-                        if (mediaInformation.customData) {
-                            this.log(`<span style="color: #FF6D00;">🔧 CustomData found:</span>`);
-                            this.log(`<pre>${JSON.stringify(mediaInformation.customData, null, 2)}</pre>`);
-                            
-                            if (mediaInformation.customData.imageSource) {
-                                const imageSource = mediaInformation.customData.imageSource;
-                                this.log(`<span style="color: #4CAF50;">🖼️ Image source extracted: ${imageSource}</span>`);
-                                this.updateImageSource(imageSource);
-                            } else {
-                                this.log('<span style="color: #FF9800;">⚠️ No imageSource found in customData</span>');
-                            }
+                        if (mediaInformation.customData.imageSource) {
+                            const imageSource = mediaInformation.customData.imageSource;
+                            this.log(`<span style="color: #4CAF50;">🖼️ Image source extracted: ${imageSource}</span>`);
+                            this.updateImageSource(imageSource);
                         } else {
-                            this.log('<span style="color: #FF9800;">⚠️ No customData found in MediaInfo</span>');
+                            this.log('<span style="color: #FF9800;">⚠️ No imageSource found in customData</span>');
                         }
                     } else {
-                        this.log('<span style="color: #F44336;">❌ No media information in event</span>');
+                        this.log('<span style="color: #FF9800;">⚠️ No customData found in MediaInfo</span>');
                     }
-                    return request;
+                } else {
+                    this.log('<span style="color: #F44336;">❌ No media information in load request</span>');
                 }
-            );
+                return request;
+            });
+
+            playerManager.setMessageInterceptor(cast.framework.messages.MessageType.PLAY, (request) => {
+                this.log('<span style="color: #4CAF50;">▶️ PLAY Message Interceptor</span>');
+                this.log(`Play request: <pre>${JSON.stringify(request, null, 2)}</pre>`);
+                return request;
+            });
+
+            // Add a catch-all message interceptor to see what messages are being sent
+            const originalSendLocalMediaStatus = playerManager.sendLocalMediaStatus;
+            playerManager.sendLocalMediaStatus = function() {
+                this.log('<span style="color: #FF5722;">📤 Sending Local Media Status</span>');
+                return originalSendLocalMediaStatus.apply(this, arguments);
+            }.bind(this);
+
+            // Intercept all possible message types
+            const messageTypes = [
+                'LOAD', 'PLAY', 'PAUSE', 'STOP', 'SEEK', 'SET_VOLUME', 
+                'GET_STATUS', 'EDIT_TRACKS_INFO', 'SET_PLAYBACK_RATE'
+            ];
+
+            messageTypes.forEach(messageType => {
+                if (cast.framework.messages.MessageType[messageType]) {
+                    try {
+                        playerManager.setMessageInterceptor(cast.framework.messages.MessageType[messageType], (request) => {
+                            this.log(`<span style="color: #795548;">📬 ${messageType} Message Intercepted</span>`);
+                            this.log(`Request: <pre>${JSON.stringify(request, null, 2)}</pre>`);
+                            return request;
+                        });
+                    } catch (error) {
+                        this.log(`<span style="color: #F44336;">❌ Failed to set interceptor for ${messageType}: ${error.message}</span>`);
+                    }
+                }
+            });
 
             this.log('Starting Cast Receiver Context...');
             castReceiverContext.start();
@@ -148,6 +195,26 @@ class ImageReceiver {
             }
         } else {
             this.log('<span style="color: #F44336;">❌ No media information in event</span>');
+        }
+    }
+
+    handleMediaStatusUpdate(event) {
+        this.log('<span style="color: #2196F3;">📺 Media Status Update Details:</span>');
+        this.log(`Full event data: <pre>${JSON.stringify(event, null, 2)}</pre>`);
+        
+        if (event.mediaStatus) {
+            this.log(`Media Status: <pre>${JSON.stringify(event.mediaStatus, null, 2)}</pre>`);
+            
+            if (event.mediaStatus.media && event.mediaStatus.media.customData) {
+                this.log(`<span style="color: #FF6D00;">🔧 CustomData in media status:</span>`);
+                this.log(`<pre>${JSON.stringify(event.mediaStatus.media.customData, null, 2)}</pre>`);
+                
+                if (event.mediaStatus.media.customData.imageSource) {
+                    const imageSource = event.mediaStatus.media.customData.imageSource;
+                    this.log(`<span style="color: #4CAF50;">🖼️ Image source from media status: ${imageSource}</span>`);
+                    this.updateImageSource(imageSource);
+                }
+            }
         }
     }
     
