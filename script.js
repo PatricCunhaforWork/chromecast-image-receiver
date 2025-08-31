@@ -9,16 +9,25 @@ class ImageReceiver {
         this.castContext = null;
         this.playerManager = null;
         this.logContainer = null;
-        
+        this.showDebugLogs = false;
+
         this.init();
     }
 
     init() {
         this.logContainer = document.getElementById('logContent');
+        this.setupLogVisibility();
         this.log('Initializing Image Receiver...');
         this.initializeCastReceiver();
         this.loadInitialImage();
         this.startImageUpdates();
+    }
+
+    setupLogVisibility() {
+        const logContainer = document.getElementById('logContainer');
+        if (logContainer) {
+            logContainer.style.display = this.showDebugLogs ? 'block' : 'none';
+        }
     }
 
     log(message) {
@@ -75,10 +84,10 @@ class ImageReceiver {
             const playerManager = castReceiverContext.getPlayerManager();
             
             // Add comprehensive event listeners
-            playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
-                this.log(`<span style="color: #9C27B0;">🎬 REQUEST_LOAD Event Received</span>`);
-                this.handleLoadEvent(event);
-            });
+            // playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
+            //     this.log(`<span style="color: #9C27B0;">🎬 REQUEST_LOAD Event Received</span>`);
+            //     this.handleLoadEvent(event);
+            // });
 
             playerManager.addEventListener(cast.framework.events.EventType.REQUEST_PLAY, (event) => {
                 this.log(`<span style="color: #4CAF50;">▶️ PLAY Request Event</span>`);
@@ -162,34 +171,34 @@ class ImageReceiver {
         }
     }
 
-    handleLoadEvent(event) {
-        this.log('<span style="color: #9C27B0;">📦 MediaInfo Load Event Details:</span>');
-        this.log(`Full event data: <pre>${JSON.stringify(event.data, null, 2)}</pre>`);
+    // handleLoadEvent(event) {
+    //     this.log('<span style="color: #9C27B0;">📦 MediaInfo Load Event Details:</span>');
+    //     this.log(`Full event data: <pre>${JSON.stringify(event.data, null, 2)}</pre>`);
         
-        const mediaInformation = event.data.media;
+    //     const mediaInformation = event.data.media;
         
-        if (mediaInformation) {
-            this.log(`<span style="color: #03DAC6;">📋 MediaInfo object received:</span>`);
-            this.log(`<pre>${JSON.stringify(mediaInformation, null, 2)}</pre>`);
+    //     if (mediaInformation) {
+    //         this.log(`<span style="color: #03DAC6;">📋 MediaInfo object received:</span>`);
+    //         this.log(`<pre>${JSON.stringify(mediaInformation, null, 2)}</pre>`);
             
-            if (mediaInformation.customData) {
-                this.log(`<span style="color: #FF6D00;">🔧 CustomData found:</span>`);
-                this.log(`<pre>${JSON.stringify(mediaInformation.customData, null, 2)}</pre>`);
+    //         if (mediaInformation.customData) {
+    //             this.log(`<span style="color: #FF6D00;">🔧 CustomData found:</span>`);
+    //             this.log(`<pre>${JSON.stringify(mediaInformation.customData, null, 2)}</pre>`);
                 
-                if (mediaInformation.customData.imageSource) {
-                    const imageSource = mediaInformation.customData.imageSource;
-                    this.log(`<span style="color: #4CAF50;">🖼️ Image source extracted: ${imageSource}</span>`);
-                    this.updateImageSource(imageSource);
-                } else {
-                    this.log('<span style="color: #FF9800;">⚠️ No imageSource found in customData</span>');
-                }
-            } else {
-                this.log('<span style="color: #FF9800;">⚠️ No customData found in MediaInfo</span>');
-            }
-        } else {
-            this.log('<span style="color: #F44336;">❌ No media information in event</span>');
-        }
-    }
+    //             if (mediaInformation.customData.imageSource) {
+    //                 const imageSource = mediaInformation.customData.imageSource;
+    //                 this.log(`<span style="color: #4CAF50;">🖼️ Image source extracted: ${imageSource}</span>`);
+    //                 this.updateImageSource(imageSource);
+    //             } else {
+    //                 this.log('<span style="color: #FF9800;">⚠️ No imageSource found in customData</span>');
+    //             }
+    //         } else {
+    //             this.log('<span style="color: #FF9800;">⚠️ No customData found in MediaInfo</span>');
+    //         }
+    //     } else {
+    //         this.log('<span style="color: #F44336;">❌ No media information in event</span>');
+    //     }
+    // }
 
     handleMediaStatusUpdate(event) {
         this.log('<span style="color: #2196F3;">📺 Media Status Update Details:</span>');
@@ -228,7 +237,7 @@ class ImageReceiver {
     updateImageSource(newImageSource) {
         this.log(`<span style="color: #E91E63;">🔄 Updating image source to: ${newImageSource}</span>`);
         this.imageUrl = newImageSource;
-        this.updateImage();
+        // this.updateImage();
         this.startImageUpdates();
     }
 
